@@ -44,7 +44,7 @@ public class EntityLogicMediator {
     /**
      * The entity representing the player
      */
-    private Entity ship;
+    private ShipEntity ship;
 
     private int alienCount;
 
@@ -148,7 +148,7 @@ public class EntityLogicMediator {
         }
     }
 
-    public Entity getShip() {
+    public ShipEntity getShip() {
         return this.ship;
     }
 

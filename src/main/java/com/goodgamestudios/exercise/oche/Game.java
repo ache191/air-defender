@@ -1,8 +1,9 @@
 package com.goodgamestudios.exercise.oche;
 
 import com.goodgamestudios.exercise.oche.entities.ShipEntity;
-import com.goodgamestudios.exercise.oche.entities.ShotEntity;
 import com.goodgamestudios.exercise.oche.logic.EntityLogicMediator;
+import com.goodgamestudios.exercise.oche.logic.KeyInputLogicMediator;
+import com.goodgamestudios.exercise.oche.sprites.BackgroundSprite;
 
 import javax.swing.*;
 import java.awt.*;
@@ -38,19 +39,6 @@ public class Game extends Canvas {
     private EntityLogicMediator entityContainer;
 
     private KeyInputLogicMediator keyInputLogicMediator;
-
-    /**
-     * The speed at which the player's ship should move (pixels/sec)
-     */
-    private double moveSpeed = 300;
-    /**
-     * The time at which last fired a shot
-     */
-    private long lastFire = 0;
-    /**
-     * The interval between our players shot (ms)
-     */
-    private long firingInterval = 500;
 
     /**
      * The message to display which waiting for a key press
@@ -97,8 +85,8 @@ public class Game extends Canvas {
 
         // add a key input system (defined below) to our canvas
         // so we can respond to key pressed
-        this.keyInputLogicMediator = new KeyInputLogicMediator();
-        addKeyListener(this.keyInputLogicMediator);
+        this.keyInputLogicMediator = KeyInputLogicMediator.getInstance();
+        addKeyListener(KeyInputLogicMediator.getInstance());
 
         // request the focus so key events come to us
         requestFocus();
@@ -155,32 +143,6 @@ public class Game extends Canvas {
         // reduce the alient count, if there are none left, the player has won!
         this.keyInputLogicMediator.incrementScore();
         this.entityContainer.notifyAlienKilled();
-    }
-
-    /**
-     * Attempt to fire a shot from the player. Its called "try"
-     * since we must first check that the player can fire at this
-     * point, i.e. has he/she waited long enough between shots
-     */
-    public void tryToFire() {
-        // check that we have waiting long enough to fire
-        if (System.currentTimeMillis() - lastFire < firingInterval) {
-            return;
-        }
-
-        // if we waited long enough, create the shot entity, and record the time.
-        lastFire = System.currentTimeMillis();
-        ShotEntity shot = new ShotEntity(
-                this, this.entityContainer.getShip().getX() + 10, this.entityContainer.getShip().getY() - 30);
-        this.entityContainer.addShot(shot);
-    }
-
-    public void makePause() {
-        this.entityContainer.makePause();
-    }
-
-    public void releasePause() {
-        this.entityContainer.releasePause();
     }
 
     /**
@@ -250,31 +212,16 @@ public class Game extends Canvas {
             // resolve the movement of the ship. First assume the ship
             // isn't moving. If either cursor key is pressed then
             // update the movement appropraitely
-            ShipEntity ship = (ShipEntity) this.entityContainer.getShip();
-            ship.setHorizontalMovement(0);
-            ship.setVerticalMovement(0);
-
-            if (this.keyInputLogicMediator.isMoveLeft()) {
-                ship.setHorizontalMovement(-moveSpeed);
-                ship.setVerticalMovement(0);
-            } else if (this.keyInputLogicMediator.isMoveRight()) {
-                ship.setHorizontalMovement(moveSpeed);
-                ship.setVerticalMovement(0);
-            } else if (this.keyInputLogicMediator.isMoveUp()) {
-                ship.setVerticalMovement(-moveSpeed);
-                ship.setHorizontalMovement(0);
-            } else if (this.keyInputLogicMediator.isMoveDown()) {
-                ship.setVerticalMovement(moveSpeed);
-                ship.setHorizontalMovement(0);
-            }
+            ShipEntity ship = this.entityContainer.getShip();
+            ship.processKeyBasedMovement();
 
             // if we're pressing fire, attempt to fire
             if (this.keyInputLogicMediator.isFirePressed()) {
-                tryToFire();
+                ship.tryToFire();
             }
 
             if (this.keyInputLogicMediator.isPausePressed()) {
-                makePause();
+                this.entityContainer.makePause();
             }
 
             // finally pause for a bit. Note: this should run us at about

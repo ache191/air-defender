@@ -1,10 +1,10 @@
-package com.goodgamestudios.exercise.oche;
+package com.goodgamestudios.exercise.oche.logic;
 
 /**
  * Created by a.chekanskiy@gmail.com on 09.10.15.
  */
 
-import com.goodgamestudios.exercise.oche.logic.EntityLogicMediator;
+import com.goodgamestudios.exercise.oche.Game;
 
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -22,6 +22,22 @@ import java.awt.event.KeyEvent;
  * @author Kevin Glass
  */
 public class KeyInputLogicMediator extends KeyAdapter {
+    // Singleton with double check
+    private static volatile KeyInputLogicMediator INSTANCE = null;
+
+    public static KeyInputLogicMediator getInstance() {
+        if (INSTANCE == null) {
+            synchronized (EntityLogicMediator.class) {
+                if (INSTANCE == null) {
+                    INSTANCE = new KeyInputLogicMediator();
+                }
+            }
+        }
+        return INSTANCE;
+    }
+
+    private KeyInputLogicMediator() {
+    }
 
     private Game game;
 

@@ -4,6 +4,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.net.URL;
 
 /**
  * Created by a.chekanskiy@gmail.com on 08.10.15.
@@ -24,7 +25,8 @@ public class BackgroundSprite {
 
         // Try to open the image file background.png
         try {
-            image = ImageIO.read(new File("background2.png"));
+            URL url = this.getClass().getClassLoader().getResource("b2.gif");
+            image = ImageIO.read(url);
         }
         catch (Exception e) { System.out.println(e); }
 
@@ -39,7 +41,7 @@ public class BackgroundSprite {
         // create an accelerated image of the right size to store our sprite in
         GraphicsConfiguration gc =
                 GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
-        image = gc.createCompatibleImage(image.getWidth(), image.getHeight(), Transparency.TRANSLUCENT);
+        image = gc.createCompatibleImage(image.getWidth(), image.getHeight(), Transparency.BITMASK);
 
         // Draw the image onto the Graphics reference
         window.drawImage(image, getX(), getY(), image.getWidth(), image.getHeight(), null);

@@ -1,6 +1,8 @@
 package com.goodgamestudios.exercise.oche.entities;
 
 import com.goodgamestudios.exercise.oche.Game;
+import com.goodgamestudios.exercise.oche.logic.EntityLogicMediator;
+import com.goodgamestudios.exercise.oche.logic.KeyInputLogicMediator;
 
 /**
  * The entity that represents the players ship
@@ -9,6 +11,13 @@ import com.goodgamestudios.exercise.oche.Game;
  */
 public class ShipEntity extends Entity {
     private static String SPRITE_PATH = "ship.gif";
+    /**
+     * The speed at which the player's ship should move (pixels/sec)
+     */
+    private static double MOVE_SPEED = 300;
+    private static long FIRING_INTERVAL = 500;
+    private long lastFire = 0;
+
     /**
      * The game in which the ship exists
      */
@@ -55,6 +64,40 @@ public class ShipEntity extends Entity {
         }
 
         super.move(delta);
+    }
+
+    public void processKeyBasedMovement() {
+        KeyInputLogicMediator keyInputLogicMediator = KeyInputLogicMediator.getInstance();
+
+        this.setHorizontalMovement(0);
+        this.setVerticalMovement(0);
+
+        if (keyInputLogicMediator.isMoveLeft()) {
+            this.setHorizontalMovement(-MOVE_SPEED);
+            this.setVerticalMovement(0);
+        } else if (keyInputLogicMediator.isMoveRight()) {
+            this.setHorizontalMovement(MOVE_SPEED);
+            this.setVerticalMovement(0);
+        } else if (keyInputLogicMediator.isMoveUp()) {
+            this.setVerticalMovement(-MOVE_SPEED);
+            this.setHorizontalMovement(0);
+        } else if (keyInputLogicMediator.isMoveDown()) {
+            this.setVerticalMovement(MOVE_SPEED);
+            this.setHorizontalMovement(0);
+        }
+    }
+
+    public void tryToFire() {
+        // check that we have waiting long enough to fire
+        if (System.currentTimeMillis() - lastFire < FIRING_INTERVAL) {
+            return;
+        }
+
+        // if we waited long enough, create the shot entity, and record the time.
+        lastFire = System.currentTimeMillis();
+        ShotEntity shot = new ShotEntity(
+                this.game, this.getX() + 10, this.getY() - 30);
+        EntityLogicMediator.getInstance().addShot(shot);
     }
 
     /**
