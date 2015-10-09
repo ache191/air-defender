@@ -1,6 +1,7 @@
 package com.goodgamestudios.exercise.oche.entities;
 
 import com.goodgamestudios.exercise.oche.Game;
+import com.goodgamestudios.exercise.oche.logic.EntityContainer;
 
 /**
  * An entity representing a shot fired by the player's ship
@@ -17,6 +18,7 @@ public class ShotEntity extends Entity {
      * The game in which this entity exists
      */
     private Game game;
+
     /**
      * True if this shot has been "used", i.e. its hit something
      */
@@ -48,7 +50,8 @@ public class ShotEntity extends Entity {
 
         // if we shot off the screen, remove ourselfs
         if (y < -100) {
-            game.removeEntity(this);
+            //this.game.entremoveEntity(this);
+            this.game.getEntityContainer().disposeEntity(this);
         }
     }
 
@@ -68,8 +71,10 @@ public class ShotEntity extends Entity {
         // if we've hit an alien, kill it!
         if (other instanceof AlienEntity) {
             // remove the affected entities
-            game.removeEntity(this);
-            game.removeEntity(other);
+            this.game.getEntityContainer().disposeEntity(this);
+            this.game.getEntityContainer().disposeEntity(other);
+            //game.removeEntity(this);
+            //game.removeEntity(other);
 
             // notify the game that the alien has been killed
             game.notifyAlienKilled();

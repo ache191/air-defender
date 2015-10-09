@@ -4,6 +4,7 @@ import com.goodgamestudios.exercise.oche.entities.AlienEntity;
 import com.goodgamestudios.exercise.oche.entities.Entity;
 import com.goodgamestudios.exercise.oche.entities.ShipEntity;
 import com.goodgamestudios.exercise.oche.entities.ShotEntity;
+import com.goodgamestudios.exercise.oche.logic.EntityContainer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,8 +13,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferStrategy;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * The main hook of our game. This class with both act as a manager
@@ -39,18 +38,9 @@ public class Game extends Canvas {
      * True if the game is currently "running", i.e. the game loop is looping
      */
     private boolean gameRunning = true;
-    /**
-     * The list of all the entities that exist in our game
-     */
-    private List<Entity> entities = new ArrayList();
-    /**
-     * The list of entities that need to be removed from the game this loop
-     */
-    private List<Entity> removeList = new ArrayList();
-    /**
-     * The entity representing the player
-     */
-    private Entity ship;
+
+    private EntityContainer entityContainer;
+
     /**
      * The speed at which the player's ship should move (pixels/sec)
      */
@@ -63,10 +53,7 @@ public class Game extends Canvas {
      * The interval between our players shot (ms)
      */
     private long firingInterval = 500;
-    /**
-     * The number of aliens left on the screen
-     */
-    private int alienCount;
+
     /**
      * Current player score
      */
@@ -153,10 +140,13 @@ public class Game extends Canvas {
         // to manage our accelerated graphics
         createBufferStrategy(2);
         strategy = getBufferStrategy();
+    }
 
+    public void initGame() {
         // initialise the entities in our game so there's something
         // to see at startup
-        initEntities();
+        this.entityContainer = EntityContainer.getInstance(this);
+        this.entityContainer.initEntities();
     }
 
     /**
@@ -165,8 +155,10 @@ public class Game extends Canvas {
      */
     private void startGame() {
         // clear out any existing entities and intialise a new set
-        entities.clear();
-        initEntities();
+
+
+        entityContainer.clearAllGameEntities();
+        entityContainer.initEntities();
         score = 0;
 
         // blank out any keyboard settings we might currently have
@@ -179,42 +171,12 @@ public class Game extends Canvas {
     }
 
     /**
-     * Initialise the starting state of the entities (ship and aliens). Each
-     * entitiy will be added to the overall list of entities in the game.
-     */
-    private void initEntities() {
-        // create the player ship and place it roughly in the center of the screen
-        ship = new ShipEntity(this, 370, 550);
-        entities.add(ship);
-
-        // create a block of aliens (5 rows, by 12 aliens, spaced evenly)
-        alienCount = 0;
-        for (int row = 0; row < 5; row++) {
-            for (int x = 0; x < 12; x++) {
-                Entity alien = new AlienEntity(this, 100 + (x * 50), (50) + row * 30);
-                entities.add(alien);
-                alienCount++;
-            }
-        }
-    }
-
-    /**
      * Notification from a game entity that the logic of the game
      * should be run at the next opportunity (normally as a result of some
      * game event)
      */
     public void updateLogic() {
         logicRequiredThisLoop = true;
-    }
-
-    /**
-     * Remove an entity from the game. The entity removed will
-     * no longer move or be drawn.
-     *
-     * @param entity The entity that should be removed
-     */
-    public void removeEntity(Entity entity) {
-        removeList.add(entity);
     }
 
     /**
@@ -244,23 +206,8 @@ public class Game extends Canvas {
      */
     public void notifyAlienKilled() {
         // reduce the alient count, if there are none left, the player has won!
-        alienCount--;
         score++;
-
-        if (alienCount == 0) {
-            notifyWin();
-        }
-
-        // if there are still some aliens left then they all need to get faster, so
-        // speed up all the existing aliens
-        for (int i = 0; i < entities.size(); i++) {
-            Entity entity = entities.get(i);
-
-            if (entity instanceof AlienEntity) {
-                // speed up by 2%
-                entity.setHorizontalMovement(entity.getHorizontalMovement() * 1.02);
-            }
-        }
+        this.entityContainer.notifyAlienKilled();
     }
 
     /**
@@ -276,21 +223,17 @@ public class Game extends Canvas {
 
         // if we waited long enough, create the shot entity, and record the time.
         lastFire = System.currentTimeMillis();
-        ShotEntity shot = new ShotEntity(this, ship.getX() + 10, ship.getY() - 30);
-        entities.add(shot);
+        ShotEntity shot = new ShotEntity(
+                this, this.entityContainer.getShip().getX() + 10, this.entityContainer.getShip().getY() - 30);
+        this.entityContainer.addShot(shot);
     }
 
     public void makePause() {
-        for (Entity entity : entities) {
-            entity.setPaused(true);
-        }
-        notifyPause();
+        this.entityContainer.makePause();
     }
 
     public void releasePause() {
-        for (Entity entity : entities) {
-            entity.setPaused(false);
-        }
+        this.entityContainer.releasePause();
     }
 
     /**
@@ -323,48 +266,19 @@ public class Game extends Canvas {
 
             // cycle round asking each entity to move itself
             if (!waitingForKeyPress) {
-                for (int i = 0; i < entities.size(); i++) {
-                    Entity entity = entities.get(i);
-
-                    entity.move(delta);
-                }
+                this.entityContainer.moveAllEntities(delta);
             }
 
             // cycle round drawing all the entities we have in the game
-            for (int i = 0; i < entities.size(); i++) {
-                Entity entity = entities.get(i);
+            this.entityContainer.drawAllEntities(g);
 
-                entity.draw(g);
-            }
-
-            // brute force collisions, compare every entity against
-            // every other entity. If any of them collide notify
-            // both entities that the collision has occured
-            for (int p = 0; p < entities.size(); p++) {
-                for (int s = p + 1; s < entities.size(); s++) {
-                    Entity me = entities.get(p);
-                    Entity him = entities.get(s);
-
-                    if (me.collidesWith(him)) {
-                        me.collidedWith(him);
-                        him.collidedWith(me);
-                    }
-                }
-            }
-
-            // remove any entity that has been marked for clear up
-            entities.removeAll(removeList);
-            removeList.clear();
+            this.entityContainer.calculateCollisionsAndRemoveCollidedEntities();
 
             // if a game event has indicated that game logic should
             // be resolved, cycle round every entity requesting that
             // their personal logic should be considered.
             if (logicRequiredThisLoop) {
-                for (int i = 0; i < entities.size(); i++) {
-                    Entity entity = entities.get(i);
-                    entity.doLogic();
-                }
-
+                this.entityContainer.doLogic();
                 logicRequiredThisLoop = false;
             }
 
@@ -389,6 +303,7 @@ public class Game extends Canvas {
             // resolve the movement of the ship. First assume the ship
             // isn't moving. If either cursor key is pressed then
             // update the movement appropraitely
+            ShipEntity ship = (ShipEntity)this.entityContainer.getShip();
             ship.setHorizontalMovement(0);
             ship.setVerticalMovement(0);
 
@@ -405,12 +320,6 @@ public class Game extends Canvas {
                 ship.setVerticalMovement(moveSpeed);
                 ship.setHorizontalMovement(0);
             }
-
-//            if ((upPressed) && (!downPressed) && (!leftPressed) && (!rightPressed)) {
-//
-//            } else if ((downPressed) && (!upPressed) && (!leftPressed) && (!rightPressed)) {
-//
-//            }
 
             // if we're pressing fire, attempt to fire
             if (firePressed) {
@@ -552,6 +461,10 @@ public class Game extends Canvas {
         }
     }
 
+    public EntityContainer getEntityContainer() {
+        return this.entityContainer;
+    }
+
     /**
      * The entry point into the game. We'll simply create an
      * instance of class which will start the display and game
@@ -561,7 +474,7 @@ public class Game extends Canvas {
      */
     public static void main(String args[]) {
         Game g = new Game();
-
+        g.initGame();
         // Start the main game loop, note: this method will not
         // return until the game has finished running. Hence we are
         // using the actual main thread to run the game.

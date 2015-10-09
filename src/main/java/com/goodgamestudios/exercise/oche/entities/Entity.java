@@ -173,4 +173,42 @@ public abstract class Entity {
 	 * @param other The entity with which this entity collided.
 	 */
 	public abstract void collidedWith(Entity other);
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Entity)) return false;
+
+        Entity entity = (Entity) o;
+
+        if (Double.compare(entity.dx, dx) != 0) return false;
+        if (Double.compare(entity.dy, dy) != 0) return false;
+        if (isPaused != entity.isPaused) return false;
+        if (Double.compare(entity.x, x) != 0) return false;
+        if (Double.compare(entity.y, y) != 0) return false;
+        if (!him.equals(entity.him)) return false;
+        if (!me.equals(entity.me)) return false;
+        if (!sprite.equals(entity.sprite)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result;
+        long temp;
+        result = (isPaused ? 1 : 0);
+        temp = Double.doubleToLongBits(x);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        temp = Double.doubleToLongBits(y);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        result = 31 * result + sprite.hashCode();
+        temp = Double.doubleToLongBits(dx);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        temp = Double.doubleToLongBits(dy);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        result = 31 * result + me.hashCode();
+        result = 31 * result + him.hashCode();
+        return result;
+    }
 }

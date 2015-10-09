@@ -1,6 +1,7 @@
 package com.goodgamestudios.exercise.oche.sprites;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 /**
  * A sprite to be displayed on the screen. Note that a sprite
@@ -15,14 +16,18 @@ public class Sprite {
     /**
      * The image to be drawn for this sprite
      */
-    private Image image;
+    //private Image image;
+    private BufferedImage image;
 
     /**
      * Create a new sprite based on an image
      *
      * @param image The image that is this sprite
      */
-    public Sprite(Image image) {
+//    public Sprite(Image image) {
+//        this.image = image;
+//    }
+    public Sprite(BufferedImage image) {
         this.image = image;
     }
 
