@@ -1,15 +1,11 @@
 package com.goodgamestudios.exercise.oche;
 
-import com.goodgamestudios.exercise.oche.entities.AlienEntity;
-import com.goodgamestudios.exercise.oche.entities.Entity;
 import com.goodgamestudios.exercise.oche.entities.ShipEntity;
 import com.goodgamestudios.exercise.oche.entities.ShotEntity;
-import com.goodgamestudios.exercise.oche.logic.EntityContainer;
+import com.goodgamestudios.exercise.oche.logic.EntityLogicMediator;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferStrategy;
@@ -39,7 +35,9 @@ public class Game extends Canvas {
      */
     private boolean gameRunning = true;
 
-    private EntityContainer entityContainer;
+    private EntityLogicMediator entityContainer;
+
+    private KeyInputLogicMediator keyInputLogicMediator;
 
     /**
      * The speed at which the player's ship should move (pixels/sec)
@@ -55,42 +53,10 @@ public class Game extends Canvas {
     private long firingInterval = 500;
 
     /**
-     * Current player score
-     */
-    private int score;
-
-    /**
      * The message to display which waiting for a key press
      */
     private String message = "";
-    /**
-     * True if we're holding up game play until a key has been pressed
-     */
-    private boolean waitingForKeyPress = true;
-    /**
-     * True if the up cursor key is currently pressed
-     */
-    private boolean upPressed = false;
-    /**
-     * True if the down cursor key is currently pressed
-     */
-    private boolean downPressed = false;
-    /**
-     * True if the left cursor key is currently pressed
-     */
-    private boolean leftPressed = false;
-    /**
-     * True if the right cursor key is currently pressed
-     */
-    private boolean rightPressed = false;
-    /**
-     * True if we are firing
-     */
-    private boolean firePressed = false;
-    /**
-     * True if we are on pause
-     */
-    private boolean pausePressed = false;
+
     /**
      * True if game logic needs to be applied this loop, normally as a result of a game event
      */
@@ -131,7 +97,8 @@ public class Game extends Canvas {
 
         // add a key input system (defined below) to our canvas
         // so we can respond to key pressed
-        addKeyListener(new KeyInputHandler());
+        this.keyInputLogicMediator = new KeyInputLogicMediator();
+        addKeyListener(this.keyInputLogicMediator);
 
         // request the focus so key events come to us
         requestFocus();
@@ -145,29 +112,9 @@ public class Game extends Canvas {
     public void initGame() {
         // initialise the entities in our game so there's something
         // to see at startup
-        this.entityContainer = EntityContainer.getInstance(this);
-        this.entityContainer.initEntities();
-    }
-
-    /**
-     * Start a fresh game, this should clear out any old data and
-     * create a new set.
-     */
-    private void startGame() {
-        // clear out any existing entities and intialise a new set
-
-
-        entityContainer.clearAllGameEntities();
-        entityContainer.initEntities();
-        score = 0;
-
-        // blank out any keyboard settings we might currently have
-        upPressed = false;
-        downPressed = false;
-        leftPressed = false;
-        rightPressed = false;
-        firePressed = false;
-        pausePressed = false;
+        this.entityContainer = EntityLogicMediator.getInstance();
+        this.entityContainer.initEntities(this);
+        this.keyInputLogicMediator.init(this);
     }
 
     /**
@@ -184,7 +131,7 @@ public class Game extends Canvas {
      */
     public void notifyDeath() {
         message = "Oh no! They got you, try again?";
-        waitingForKeyPress = true;
+        this.keyInputLogicMediator.setWaitingForKeyPress(true);
     }
 
     /**
@@ -193,12 +140,12 @@ public class Game extends Canvas {
      */
     public void notifyWin() {
         message = "Well done! You Win!";
-        waitingForKeyPress = true;
+        this.keyInputLogicMediator.setWaitingForKeyPress(true);
     }
 
     public void notifyPause() {
         message = "Paused";
-        waitingForKeyPress = true;
+        this.keyInputLogicMediator.setWaitingForKeyPress(true);
     }
 
     /**
@@ -206,7 +153,7 @@ public class Game extends Canvas {
      */
     public void notifyAlienKilled() {
         // reduce the alient count, if there are none left, the player has won!
-        score++;
+        this.keyInputLogicMediator.incrementScore();
         this.entityContainer.notifyAlienKilled();
     }
 
@@ -265,7 +212,7 @@ public class Game extends Canvas {
             g.fillRect(0, 0, 800, 600);
 
             // cycle round asking each entity to move itself
-            if (!waitingForKeyPress) {
+            if (!this.keyInputLogicMediator.isWaitingForKeyPress()) {
                 this.entityContainer.moveAllEntities(delta);
             }
 
@@ -284,12 +231,12 @@ public class Game extends Canvas {
 
             //HUD score logic
             g.setColor(Color.white);
-            g.drawString(String.valueOf("Score: " + score), 10, 20);
+            g.drawString(String.valueOf("Score: " + this.keyInputLogicMediator.getScore()), 10, 20);
 
 
             // if we're waiting for an "any key" press then draw the
             // current message
-            if (waitingForKeyPress) {
+            if (this.keyInputLogicMediator.isWaitingForKeyPress()) {
                 g.setColor(Color.white);
                 g.drawString(message, (800 - g.getFontMetrics().stringWidth(message)) / 2, 250);
                 g.drawString("Press any key", (800 - g.getFontMetrics().stringWidth("Press any key")) / 2, 300);
@@ -303,30 +250,30 @@ public class Game extends Canvas {
             // resolve the movement of the ship. First assume the ship
             // isn't moving. If either cursor key is pressed then
             // update the movement appropraitely
-            ShipEntity ship = (ShipEntity)this.entityContainer.getShip();
+            ShipEntity ship = (ShipEntity) this.entityContainer.getShip();
             ship.setHorizontalMovement(0);
             ship.setVerticalMovement(0);
 
-            if ((leftPressed) && (!rightPressed) && (!upPressed) && (!downPressed)) {
+            if (this.keyInputLogicMediator.isMoveLeft()) {
                 ship.setHorizontalMovement(-moveSpeed);
                 ship.setVerticalMovement(0);
-            } else if ((rightPressed) && (!leftPressed) && (!upPressed) && (!downPressed)) {
+            } else if (this.keyInputLogicMediator.isMoveRight()) {
                 ship.setHorizontalMovement(moveSpeed);
                 ship.setVerticalMovement(0);
-            } else if ((upPressed) && (!downPressed) && (!leftPressed) && (!rightPressed)) {
+            } else if (this.keyInputLogicMediator.isMoveUp()) {
                 ship.setVerticalMovement(-moveSpeed);
                 ship.setHorizontalMovement(0);
-            } else if ((downPressed) && (!upPressed) && (!leftPressed) && (!rightPressed)) {
+            } else if (this.keyInputLogicMediator.isMoveDown()) {
                 ship.setVerticalMovement(moveSpeed);
                 ship.setHorizontalMovement(0);
             }
 
             // if we're pressing fire, attempt to fire
-            if (firePressed) {
+            if (this.keyInputLogicMediator.isFirePressed()) {
                 tryToFire();
             }
 
-            if (pausePressed) {
+            if (this.keyInputLogicMediator.isPausePressed()) {
                 makePause();
             }
 
@@ -340,128 +287,7 @@ public class Game extends Canvas {
         }
     }
 
-    /**
-     * A class to handle keyboard input from the user. The class
-     * handles both dynamic input during game play, i.e. left/right
-     * and shoot, and more static type input (i.e. press any key to
-     * continue)
-     * <p/>
-     * This has been implemented as an inner class more through
-     * habbit then anything else. Its perfectly normal to implement
-     * this as seperate class if slight less convienient.
-     *
-     * @author Kevin Glass
-     */
-    private class KeyInputHandler extends KeyAdapter {
-        /**
-         * The number of key presses we've had while waiting for an "any key" press
-         */
-        private int pressCount = 1;
-
-        /**
-         * Notification from AWT that a key has been pressed. Note that
-         * a key being pressed is equal to being pushed down but *NOT*
-         * released. Thats where keyTyped() comes in.
-         *
-         * @param e The details of the key that was pressed
-         */
-        public void keyPressed(KeyEvent e) {
-            // if we're waiting for an "any key" typed then we don't
-            // want to do anything with just a "press"
-            if (waitingForKeyPress) {
-                return;
-            }
-
-            if (e.getKeyCode() == KeyEvent.VK_UP) {
-                upPressed = true;
-            }
-            if (e.getKeyCode() == KeyEvent.VK_DOWN) {
-                downPressed = true;
-            }
-            if (e.getKeyCode() == KeyEvent.VK_LEFT) {
-                leftPressed = true;
-            }
-            if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
-                rightPressed = true;
-            }
-            if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-                firePressed = true;
-            }
-            if (e.getKeyCode() == KeyEvent.VK_P) {
-                pausePressed = true;
-            }
-        }
-
-        /**
-         * Notification from AWT that a key has been released.
-         *
-         * @param e The details of the key that was released
-         */
-        public void keyReleased(KeyEvent e) {
-            // if we're waiting for an "any key" typed then we don't
-            // want to do anything with just a "released"
-            if (waitingForKeyPress) {
-                return;
-            }
-
-            if (e.getKeyCode() == KeyEvent.VK_UP) {
-                upPressed = false;
-            }
-            if (e.getKeyCode() == KeyEvent.VK_DOWN) {
-                downPressed = false;
-            }
-            if (e.getKeyCode() == KeyEvent.VK_LEFT) {
-                leftPressed = false;
-            }
-            if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
-                rightPressed = false;
-            }
-            if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-                firePressed = false;
-            }
-        }
-
-        /**
-         * Notification from AWT that a key has been typed. Note that
-         * typing a key means to both press and then release it.
-         *
-         * @param e The details of the key that was typed.
-         */
-        public void keyTyped(KeyEvent e) {
-            // if we're waiting for a "any key" type then
-            // check if we've recieved any recently. We may
-            // have had a keyType() event from the user releasing
-            // the shoot or move keys, hence the use of the "pressCount"
-            // counter.
-            if (waitingForKeyPress) {
-                //release pause is another case
-                if (pausePressed) {
-                    pausePressed = false;
-                    waitingForKeyPress = false;
-                    releasePause();
-                    return;
-                }
-
-                if (pressCount == 1) {
-                    // since we've now recieved our key typed
-                    // event we can mark it as such and start
-                    // our new game
-                    waitingForKeyPress = false;
-                    startGame();
-                    pressCount = 0;
-                } else {
-                    pressCount++;
-                }
-            }
-
-            // if we hit escape, then quit the game
-            if (e.getKeyChar() == 27) {
-                System.exit(0);
-            }
-        }
-    }
-
-    public EntityContainer getEntityContainer() {
+    public EntityLogicMediator getEntityContainer() {
         return this.entityContainer;
     }
 

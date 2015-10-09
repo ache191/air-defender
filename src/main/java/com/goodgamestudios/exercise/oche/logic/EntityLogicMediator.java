@@ -13,23 +13,22 @@ import java.util.List;
 /**
  * Created by a.chekanskiy@gmail.com on 09.10.15.
  */
-public class EntityContainer {
+public class EntityLogicMediator {
     // Singleton with double check
-    private static volatile EntityContainer INSTANCE = null;
+    private static volatile EntityLogicMediator INSTANCE = null;
 
-    public static EntityContainer getInstance(Game game) {
+    public static EntityLogicMediator getInstance() {
         if (INSTANCE == null) {
-            synchronized (EntityContainer.class) {
+            synchronized (EntityLogicMediator.class) {
                 if (INSTANCE == null) {
-                    INSTANCE = new EntityContainer(game);
+                    INSTANCE = new EntityLogicMediator();
                 }
             }
         }
         return INSTANCE;
     }
 
-    private EntityContainer(Game game) {
-        this.game = game;
+    private EntityLogicMediator() {
     }
 
     private Game game;
@@ -57,7 +56,8 @@ public class EntityContainer {
      * Initialise the starting state of the entities (ship and aliens). Each
      * entitiy will be added to the overall list of entities in the game.
      */
-    public void initEntities() {
+    public void initEntities(Game game) {
+        this.game = game;
         // create the player ship and place it roughly in the center of the screen
         this.ship = new ShipEntity(this.game, 370, 550);
         this.allEntities.add(this.ship);
@@ -95,7 +95,7 @@ public class EntityContainer {
         }
     }
 
-    public void calculateCollisionsAndRemoveCollidedEntities(){
+    public void calculateCollisionsAndRemoveCollidedEntities() {
         for (int p = 0; p < this.allEntities.size(); p++) {
             for (int s = p + 1; s < this.allEntities.size(); s++) {
                 Entity me = this.allEntities.get(p);
@@ -119,7 +119,7 @@ public class EntityContainer {
         }
     }
 
-    public void doLogic(){
+    public void doLogic() {
         for (Entity entity : this.allEntities) {
             entity.doLogic();
         }
@@ -162,6 +162,10 @@ public class EntityContainer {
 
     public void disposeEntity(Entity entity) {
         this.disposedShotsAndEnemies.add(entity);
+    }
+
+    public void setGame(Game game) {
+        this.game = game;
     }
 
 }

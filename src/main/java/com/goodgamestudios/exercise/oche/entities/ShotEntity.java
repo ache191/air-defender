@@ -1,7 +1,6 @@
 package com.goodgamestudios.exercise.oche.entities;
 
 import com.goodgamestudios.exercise.oche.Game;
-import com.goodgamestudios.exercise.oche.logic.EntityContainer;
 
 /**
  * An entity representing a shot fired by the player's ship
