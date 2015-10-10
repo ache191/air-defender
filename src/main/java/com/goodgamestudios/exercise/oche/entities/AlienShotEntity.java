@@ -1,18 +1,17 @@
 package com.goodgamestudios.exercise.oche.entities;
 
 import com.goodgamestudios.exercise.oche.Game;
+import com.goodgamestudios.exercise.oche.logic.EntityLogicMediator;
 
 /**
- * An entity representing a shot fired by the player's ship
- *
- * @author Kevin Glass
+ * Created by a.chekanskiy@gmail.com on 10.10.15.
  */
-public class ShotEntity extends Entity {
-    private static String SPRITE_PATH = "sprites/shot.gif";
+public class AlienShotEntity extends Entity {
+    private static String SPRITE_PATH = "sprites/alien_shot.gif";
     /**
      * The vertical speed at which the players shot moves
      */
-    private double moveSpeed = -300;
+    private double moveSpeed = 300;
     /**
      * The game in which this entity exists
      */
@@ -30,7 +29,7 @@ public class ShotEntity extends Entity {
      * @param x      The initial x location of the shot
      * @param y      The initial y location of the shot
      */
-    public ShotEntity(Game game, int x, int y) {
+    public AlienShotEntity(Game game, int x, int y) {
         super(SPRITE_PATH, x, y);
 
         this.game = game;
@@ -48,8 +47,7 @@ public class ShotEntity extends Entity {
         super.move(delta);
 
         // if we shot off the screen, remove ourselfs
-        if (y < -100) {
-            //this.game.entremoveEntity(this);
+        if (y > 700) {
             this.game.getEntityContainer().disposeEntity(this);
         }
     }
@@ -67,14 +65,24 @@ public class ShotEntity extends Entity {
             return;
         }
 
-        // if we've hit an alien, kill it!
-        if (other instanceof AlienEntity) {
+        //other aliens is not vulnerable to alien weapon
+        if(other instanceof AlienEntity) {
+            return;
+        }
+
+        // if we've hit a ship, check if we have enough life attempts, otherwise kill it with fire!
+        if (other instanceof ShipEntity) {
             // remove the affected entities
-            this.game.getEntityContainer().disposeEntity(this);
-            this.game.getEntityContainer().disposeEntity(other);
-            // notify the game that the alien has been killed
-            game.notifyAlienKilled();
+            EntityLogicMediator entityLogicMediator = EntityLogicMediator.getInstance();
+            entityLogicMediator.disposeEntity(this);
+            if(entityLogicMediator.getShip().lifeLeft() > 0){
+                entityLogicMediator.getShip().decreaseLifeCount();
+            } else {
+                game.notifyDeath();
+            }
+
             used = true;
         }
     }
 }
+

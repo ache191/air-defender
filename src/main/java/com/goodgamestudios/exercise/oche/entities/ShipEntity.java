@@ -10,13 +10,14 @@ import com.goodgamestudios.exercise.oche.logic.KeyInputLogicMediator;
  * @author Kevin Glass
  */
 public class ShipEntity extends Entity {
-    private static String SPRITE_PATH = "ship.gif";
+    private static String SPRITE_PATH = "sprites/ship.gif";
     /**
      * The speed at which the player's ship should move (pixels/sec)
      */
     private static double MOVE_SPEED = 300;
     private static long FIRING_INTERVAL = 500;
     private long lastFire = 0;
+    private int lifeCount = 5;
 
     /**
      * The game in which the ship exists
@@ -109,7 +110,17 @@ public class ShipEntity extends Entity {
         // if its an alien, notify the game that the player
         // is dead
         if (other instanceof AlienEntity) {
+            this.lifeCount = 0;
+            EntityLogicMediator.getInstance().clearAllGameEntities();
             game.notifyDeath();
         }
+    }
+
+    public int lifeLeft() {
+        return this.lifeCount;
+    }
+
+    public void decreaseLifeCount() {
+        this.lifeCount--;
     }
 }

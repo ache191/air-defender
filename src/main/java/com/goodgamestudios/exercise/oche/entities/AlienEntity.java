@@ -8,11 +8,13 @@ import com.goodgamestudios.exercise.oche.Game;
  * @author Kevin Glass
  */
 public class AlienEntity extends Entity {
-    private static String SPRITE_PATH = "alien.gif";
+    private static String SPRITE_PATH = "sprites/alien.gif";
     /**
      * The speed at which the alien moves horizontally
      */
-    private double moveSpeed = 75;
+    private static double MOVE_SPEED = 75;
+    private static long FIRING_INTERVAL = 100;
+    private long lastFire = 0;
     /**
      * The game in which the entity exists
      */
@@ -29,7 +31,7 @@ public class AlienEntity extends Entity {
         super(SPRITE_PATH, x, y);
 
         this.game = game;
-        dx = -moveSpeed;
+        dx = -MOVE_SPEED;
     }
 
     /**
@@ -67,6 +69,22 @@ public class AlienEntity extends Entity {
         if (y > 570) {
             game.notifyDeath();
         }
+    }
+
+    public AlienShotEntity tryToFireAndReturnShot() {
+        double chance = Math.random();
+        if(chance > 0.001) {
+            return null;
+        }
+        // check that we have waiting long enough to fire
+        if (System.currentTimeMillis() - lastFire < FIRING_INTERVAL) {
+            return null;
+        }
+
+        // if we waited long enough, create the shot entity, and record the time.
+        lastFire = System.currentTimeMillis();
+        return new AlienShotEntity(
+                this.game, this.getX() - 10, this.getY() + 30);
     }
 
     /**

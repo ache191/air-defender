@@ -1,13 +1,11 @@
 package com.goodgamestudios.exercise.oche.logic;
 
 import com.goodgamestudios.exercise.oche.Game;
-import com.goodgamestudios.exercise.oche.entities.AlienEntity;
-import com.goodgamestudios.exercise.oche.entities.Entity;
-import com.goodgamestudios.exercise.oche.entities.ShipEntity;
-import com.goodgamestudios.exercise.oche.entities.ShotEntity;
+import com.goodgamestudios.exercise.oche.entities.*;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -119,6 +117,19 @@ public class EntityLogicMediator {
         }
     }
 
+    public void processAlienShot() {
+        List<AlienShotEntity> shotList = new LinkedList<AlienShotEntity>();
+        for (Entity entity : this.allEntities) {
+            if(entity instanceof AlienEntity) {
+                AlienShotEntity alienShot = ((AlienEntity) entity).tryToFireAndReturnShot();
+                if(alienShot != null) {
+                    shotList.add(alienShot);
+                }
+            }
+        }
+        this.allEntities.addAll(shotList);
+    }
+
     public void doLogic() {
         for (Entity entity : this.allEntities) {
             entity.doLogic();
@@ -131,7 +142,7 @@ public class EntityLogicMediator {
         }
     }
 
-    public void addShot(ShotEntity shot) {
+    public void addShot(Entity shot) {
         this.allEntities.add(shot);
     }
 

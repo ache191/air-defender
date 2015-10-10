@@ -87,7 +87,6 @@ public class SpriteStore {
         // create an accelerated image of the right size to store our sprite in
         GraphicsConfiguration gc =
                 GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
-        //Image image = gc.createCompatibleImage(sourceImage.getWidth(), sourceImage.getHeight(), Transparency.BITMASK);
         BufferedImage image = gc.createCompatibleImage(sourceImage.getWidth(), sourceImage.getHeight(), Transparency.BITMASK);
 
         // draw our source image into the accelerated image

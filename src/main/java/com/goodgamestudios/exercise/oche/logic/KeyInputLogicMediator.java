@@ -74,8 +74,6 @@ public class KeyInputLogicMediator extends KeyAdapter {
      */
     private int pressCount = 1;
 
-    private int score;
-
     public void init(Game game) {
         this.game = game;
     }
@@ -190,7 +188,7 @@ public class KeyInputLogicMediator extends KeyAdapter {
         EntityLogicMediator entityMediator = EntityLogicMediator.getInstance();
         entityMediator.clearAllGameEntities();
         entityMediator.initEntities(this.game);
-        this.score = 0;
+        StateLogicMediator.getInstance().resetScore();
         // blank out any keyboard settings we might currently have
         upPressed = false;
         downPressed = false;
@@ -244,11 +242,4 @@ public class KeyInputLogicMediator extends KeyAdapter {
         return pausePressed;
     }
 
-    public int getScore() {
-        return score;
-    }
-
-    public void incrementScore() {
-        this.score++;
-    }
 }

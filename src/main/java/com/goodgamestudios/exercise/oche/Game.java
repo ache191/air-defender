@@ -3,6 +3,7 @@ package com.goodgamestudios.exercise.oche;
 import com.goodgamestudios.exercise.oche.entities.ShipEntity;
 import com.goodgamestudios.exercise.oche.logic.EntityLogicMediator;
 import com.goodgamestudios.exercise.oche.logic.KeyInputLogicMediator;
+import com.goodgamestudios.exercise.oche.logic.StateLogicMediator;
 import com.goodgamestudios.exercise.oche.sprites.BackgroundSprite;
 
 import javax.swing.*;
@@ -39,6 +40,8 @@ public class Game extends Canvas {
     private EntityLogicMediator entityContainer;
 
     private KeyInputLogicMediator keyInputLogicMediator;
+
+    private StateLogicMediator stateLogicMediator;
 
     /**
      * The message to display which waiting for a key press
@@ -103,6 +106,7 @@ public class Game extends Canvas {
         this.entityContainer = EntityLogicMediator.getInstance();
         this.entityContainer.initEntities(this);
         this.keyInputLogicMediator.init(this);
+        this.stateLogicMediator = StateLogicMediator.getInstance();
     }
 
     /**
@@ -118,6 +122,7 @@ public class Game extends Canvas {
      * Notification that the player has died.
      */
     public void notifyDeath() {
+        this.stateLogicMediator.makeNewAttempt();
         message = "Oh no! They got you, try again?";
         this.keyInputLogicMediator.setWaitingForKeyPress(true);
     }
@@ -127,6 +132,7 @@ public class Game extends Canvas {
      * are dead.
      */
     public void notifyWin() {
+        this.stateLogicMediator.makeNewAttempt();
         message = "Well done! You Win!";
         this.keyInputLogicMediator.setWaitingForKeyPress(true);
     }
@@ -141,7 +147,7 @@ public class Game extends Canvas {
      */
     public void notifyAlienKilled() {
         // reduce the alient count, if there are none left, the player has won!
-        this.keyInputLogicMediator.incrementScore();
+        this.stateLogicMediator.incrementScore();
         this.entityContainer.notifyAlienKilled();
     }
 
@@ -173,8 +179,10 @@ public class Game extends Canvas {
             g.setColor(Color.black);
             g.fillRect(0, 0, 800, 600);
 
+
             // cycle round asking each entity to move itself
             if (!this.keyInputLogicMediator.isWaitingForKeyPress()) {
+                this.entityContainer.processAlienShot();
                 this.entityContainer.moveAllEntities(delta);
             }
 
@@ -193,7 +201,11 @@ public class Game extends Canvas {
 
             //HUD score logic
             g.setColor(Color.white);
-            g.drawString(String.valueOf("Score: " + this.keyInputLogicMediator.getScore()), 10, 20);
+            g.drawString(String.valueOf(
+                    "Score: " +
+                            this.stateLogicMediator.getScore() +
+                            " Life left: " +
+                            this.entityContainer.getShip().lifeLeft()), 10, 20);
 
 
             // if we're waiting for an "any key" press then draw the
@@ -202,6 +214,7 @@ public class Game extends Canvas {
                 g.setColor(Color.white);
                 g.drawString(message, (800 - g.getFontMetrics().stringWidth(message)) / 2, 250);
                 g.drawString("Press any key", (800 - g.getFontMetrics().stringWidth("Press any key")) / 2, 300);
+                this.stateLogicMediator.printAllAttempts(g);
             }
 
             // finally, we've completed drawing so clear up the graphics
