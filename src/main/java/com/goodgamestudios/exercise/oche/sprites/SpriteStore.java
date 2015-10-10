@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A resource manager for sprites in the game. Its often quite important
@@ -17,9 +19,12 @@ import java.util.Map;
  * [singleton]
  * <p/>
  *
- * @author Kevin Glass
+ * @author Kevin Glass, oleksandr.chekanskyi
+ * @author oleksandr.chekanskyi
+ *
  */
 public class SpriteStore {
+    private static Logger LOGGER = Logger.getLogger(SpriteStore.class.getName());
     //Message constants to be used for "logging"
     private static String ERR_REF_NOT_FOUND = "Can't find ref: ";
     private static String ERR_REF_LOAD = "Failed to load:  ";
@@ -75,13 +80,13 @@ public class SpriteStore {
             URL url = this.getClass().getClassLoader().getResource(ref);
 
             if (url == null) {
-                fail(ERR_REF_NOT_FOUND + ref);
+                LOGGER.log(Level.SEVERE, ERR_REF_NOT_FOUND + ref);
             }
 
             // use ImageIO to read the image in
             sourceImage = ImageIO.read(url);
         } catch (IOException e) {
-            fail(ERR_REF_LOAD + ref);
+            LOGGER.log(Level.SEVERE, ERR_REF_LOAD + ref);
         }
 
         // create an accelerated image of the right size to store our sprite in
@@ -97,17 +102,5 @@ public class SpriteStore {
         sprites.put(ref, sprite);
 
         return sprite;
-    }
-
-    /**
-     * Utility method to handle resource loading failure
-     *
-     * @param message The message to display on failure
-     */
-    private void fail(String message) {
-        // we're pretty dramatic here, if a resource isn't available
-        // we dump the message and exit the game
-        System.err.println(message);
-        System.exit(0);
     }
 }

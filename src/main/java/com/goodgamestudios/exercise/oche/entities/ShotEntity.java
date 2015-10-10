@@ -12,7 +12,8 @@ public class ShotEntity extends Entity {
     /**
      * The vertical speed at which the players shot moves
      */
-    private double moveSpeed = -300;
+    private static final double MOVE_SPEED = -300;
+    private static final double SHOT_BOUNDARY = -100;
     /**
      * The game in which this entity exists
      */
@@ -35,7 +36,7 @@ public class ShotEntity extends Entity {
 
         this.game = game;
 
-        dy = moveSpeed;
+        dy = MOVE_SPEED;
     }
 
     /**
@@ -48,7 +49,7 @@ public class ShotEntity extends Entity {
         super.move(delta);
 
         // if we shot off the screen, remove ourselfs
-        if (y < -100) {
+        if (y < SHOT_BOUNDARY) {
             //this.game.entremoveEntity(this);
             this.game.getEntityContainer().disposeEntity(this);
         }

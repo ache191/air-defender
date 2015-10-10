@@ -11,7 +11,9 @@ public class AlienShotEntity extends Entity {
     /**
      * The vertical speed at which the players shot moves
      */
-    private double moveSpeed = 300;
+    private static final double MOVE_SPEED = 300;
+    private static final int BULLET_BOUNDARY = 700;
+    private static final int LIFE_BOUNDARY = 0;
     /**
      * The game in which this entity exists
      */
@@ -34,7 +36,7 @@ public class AlienShotEntity extends Entity {
 
         this.game = game;
 
-        dy = moveSpeed;
+        dy = MOVE_SPEED;
     }
 
     /**
@@ -47,7 +49,7 @@ public class AlienShotEntity extends Entity {
         super.move(delta);
 
         // if we shot off the screen, remove ourselfs
-        if (y > 700) {
+        if (y > BULLET_BOUNDARY) {
             this.game.getEntityContainer().disposeEntity(this);
         }
     }
@@ -75,7 +77,7 @@ public class AlienShotEntity extends Entity {
             // remove the affected entities
             EntityLogicMediator entityLogicMediator = EntityLogicMediator.getInstance();
             entityLogicMediator.disposeEntity(this);
-            if(entityLogicMediator.getShip().lifeLeft() > 0){
+            if(entityLogicMediator.getShip().lifeLeft() > LIFE_BOUNDARY){
                 entityLogicMediator.getShip().decreaseLifeCount();
             } else {
                 game.notifyDeath();

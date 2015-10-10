@@ -20,6 +20,7 @@ import java.awt.Rectangle;
  * @author Kevin Glass
  */
 public abstract class Entity {
+    private static final int MILLISECONDS_CORRECTIVE = 1000;
     /** true if entity is paused */
     protected boolean isPaused;
 	/** The current x location of this entity */ 
@@ -62,8 +63,8 @@ public abstract class Entity {
             return;
         }
 		// update the location of the entity based on move speeds
-		x += (delta * dx) / 1000;
-		y += (delta * dy) / 1000;
+		x += (delta * dx) / MILLISECONDS_CORRECTIVE;
+		y += (delta * dy) / MILLISECONDS_CORRECTIVE;
 	}
 
     /**

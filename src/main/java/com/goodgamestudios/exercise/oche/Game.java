@@ -4,7 +4,6 @@ import com.goodgamestudios.exercise.oche.entities.ShipEntity;
 import com.goodgamestudios.exercise.oche.logic.EntityLogicMediator;
 import com.goodgamestudios.exercise.oche.logic.KeyInputLogicMediator;
 import com.goodgamestudios.exercise.oche.logic.StateLogicMediator;
-import com.goodgamestudios.exercise.oche.sprites.BackgroundSprite;
 
 import javax.swing.*;
 import java.awt.*;

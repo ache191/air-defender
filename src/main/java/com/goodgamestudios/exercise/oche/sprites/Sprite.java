@@ -24,9 +24,6 @@ public class Sprite {
      *
      * @param image The image that is this sprite
      */
-//    public Sprite(Image image) {
-//        this.image = image;
-//    }
     public Sprite(BufferedImage image) {
         this.image = image;
     }

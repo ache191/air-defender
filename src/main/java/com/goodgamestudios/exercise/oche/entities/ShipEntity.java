@@ -14,8 +14,16 @@ public class ShipEntity extends Entity {
     /**
      * The speed at which the player's ship should move (pixels/sec)
      */
-    private static double MOVE_SPEED = 300;
-    private static long FIRING_INTERVAL = 500;
+    private static final double MOVE_SPEED = 300;
+    private static final long FIRING_INTERVAL = 500;
+    private static final int SPEED_BOUNDARY = 0;
+    private static final int LEFT_BOUNDARY = 10;
+    private static final int RIGHT_BOUNDARY = 750;
+    private static final int UP_BOUNDARY = 10;
+    private static final int BOTTOM_BOUNDARY = 550;
+    private static final int SHOT_X_CORRECTIVE = 10;
+    private static final int SHOT_Y_CORRECTIVE = 30;
+
     private long lastFire = 0;
     private int lifeCount = 5;
 
@@ -46,21 +54,21 @@ public class ShipEntity extends Entity {
     public void move(long delta) {
         // if we're moving left and have reached the left hand side
         // of the screen, don't move
-        if ((dx < 0) && (x < 10)) {
+        if ((dx < SPEED_BOUNDARY) && (x < LEFT_BOUNDARY)) {
             return;
         }
 
-        if ((dy < 0) && (y < 10)) {
+        if ((dy < SPEED_BOUNDARY) && (y < UP_BOUNDARY)) {
             return;
         }
 
         // if we're moving right and have reached the right hand side
         // of the screen, don't move
-        if ((dx > 0) && (x > 750)) {
+        if ((dx > SPEED_BOUNDARY) && (x > RIGHT_BOUNDARY)) {
             return;
         }
 
-        if ((dy > 0) && (y > 550)) {
+        if ((dy > SPEED_BOUNDARY) && (y > BOTTOM_BOUNDARY)) {
             return;
         }
 
@@ -97,7 +105,7 @@ public class ShipEntity extends Entity {
         // if we waited long enough, create the shot entity, and record the time.
         lastFire = System.currentTimeMillis();
         ShotEntity shot = new ShotEntity(
-                this.game, this.getX() + 10, this.getY() - 30);
+                this.game, this.getX() + SHOT_X_CORRECTIVE, this.getY() - SHOT_Y_CORRECTIVE);
         EntityLogicMediator.getInstance().addShot(shot);
     }
 
