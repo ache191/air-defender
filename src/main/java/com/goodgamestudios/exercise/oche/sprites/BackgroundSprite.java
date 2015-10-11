@@ -7,8 +7,9 @@ import java.io.File;
 import java.net.URL;
 
 /**
- * Created by a.chekanskiy@gmail.com on 08.10.15.
+ * FOR NOW THIS CLASS IS NOT USED!
  */
+
 public class BackgroundSprite {
     private BufferedImage image = null;
 

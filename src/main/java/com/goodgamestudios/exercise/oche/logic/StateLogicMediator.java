@@ -12,11 +12,24 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by a.chekanskiy@gmail.com on 10.10.15.
  */
 public class StateLogicMediator {
+    private static Logger LOGGER = Logger.getLogger(StateLogicMediator.class.getName());
+
+    private static final String CAN_NOT_FETCH_HIGH_SCORES = "Error to fetch high score table from file! {}";
+    private static final String CAN_NOT_WRITE_TO_HIGH_SCORES = "Error to write to highscore file! {}";
+
+    private static final int PRINT_SCREEN_WIDTH = 800;
+    private static final int PRINT_SCREEN_HEIGHT = 335;
+    private static final int PRINT_WIDTH_CORRECTIVE = 2;
+    private static final int PRINT_START_CORRECTIVE = 350;
+    private static final int PRINT_CORRECTIVE_SHIFT = 15;
+
     // Singleton with double check
     private static volatile StateLogicMediator INSTANCE = null;
 
@@ -51,25 +64,26 @@ public class StateLogicMediator {
     }
 
     public void printAllAttempts(Graphics2D g) {
-        g.drawString("TOP TEN", (800 - g.getFontMetrics().stringWidth("TOP TEN")) / 2, 335);
-        int corrective = 350;
+        g.drawString("TOP TEN",
+                    (PRINT_SCREEN_WIDTH - g.getFontMetrics().stringWidth("TOP TEN")) / PRINT_WIDTH_CORRECTIVE,
+                    PRINT_SCREEN_HEIGHT);
+        int corrective = PRINT_START_CORRECTIVE;
         for (String s : getAllAttemptsAsStrings()) {
-            g.drawString(s, (800 - g.getFontMetrics().stringWidth(s)) / 2, corrective);
-            corrective = corrective + 15;
+            g.drawString(s,
+                        (PRINT_SCREEN_WIDTH - g.getFontMetrics().stringWidth(s)) / PRINT_WIDTH_CORRECTIVE,
+                        corrective);
+            corrective = corrective + PRINT_CORRECTIVE_SHIFT;
         }
     }
 
 
 
     private void mergeGameAttemptsToGetTopTen() {
-        //List<GameAttempt> mergedAttempts = getPreviousAttempts();
-        //this.gameAttempts.addAll();
         this.bestTenAttempts.add(this.lastAttempt);
         Collections.sort(this.bestTenAttempts);
         if(this.bestTenAttempts.size() > 10) {
             this.bestTenAttempts = this.bestTenAttempts.subList(0, 10);
         }
-        //this.bestTenAttempts = mergedAttempts;
         List<String> attempts = new LinkedList();
         for (GameAttempt attempt : this.bestTenAttempts) {
             attempts.add(attempt.toCSVLikeString());
@@ -79,7 +93,7 @@ public class StateLogicMediator {
             FileUtils.write(attemptsFile, "");
             FileUtils.writeLines(attemptsFile, attempts);
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, CAN_NOT_WRITE_TO_HIGH_SCORES, e.getMessage());
         }
     }
 
@@ -92,9 +106,8 @@ public class StateLogicMediator {
                     result.add(valueOfCSVLikeString(string));
                 }
             }
-
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, CAN_NOT_FETCH_HIGH_SCORES, e.getMessage());
         }
         return result;
     }
@@ -102,6 +115,7 @@ public class StateLogicMediator {
     private GameAttempt valueOfCSVLikeString(String str) {
         String[] val = str.split(";");
         GameAttempt gameAttempt = new GameAttempt();
+        //As we've serialized this string by self we know for sure the order of serialization.
         gameAttempt.setScore(Integer.valueOf(val[0]));
         gameAttempt.setLifeCount(Integer.valueOf(val[1]));
         gameAttempt.setDate(new Date(Long.valueOf(val[2])));

@@ -22,6 +22,7 @@ import java.awt.event.KeyEvent;
  * @author Kevin Glass
  */
 public class KeyInputLogicMediator extends KeyAdapter {
+    private static final int ESC_CODE = 27;
     // Singleton with double check
     private static volatile KeyInputLogicMediator INSTANCE = null;
 
@@ -37,6 +38,14 @@ public class KeyInputLogicMediator extends KeyAdapter {
     }
 
     private KeyInputLogicMediator() {
+        this.pressCount = 1;
+        this.waitingForKeyPress = true;
+        this.upPressed = false;
+        this.downPressed = false;
+        this.leftPressed = false;
+        this.rightPressed = false;
+        this.firePressed = false;
+        this.pausePressed = false;
     }
 
     private Game game;
@@ -44,35 +53,35 @@ public class KeyInputLogicMediator extends KeyAdapter {
     /**
      * True if we're holding up game play until a key has been pressed
      */
-    private boolean waitingForKeyPress = true;
+    private boolean waitingForKeyPress;
     /**
      * True if the up cursor key is currently pressed
      */
-    private boolean upPressed = false;
+    private boolean upPressed;
     /**
      * True if the down cursor key is currently pressed
      */
-    private boolean downPressed = false;
+    private boolean downPressed;
     /**
      * True if the left cursor key is currently pressed
      */
-    private boolean leftPressed = false;
+    private boolean leftPressed;
     /**
      * True if the right cursor key is currently pressed
      */
-    private boolean rightPressed = false;
+    private boolean rightPressed;
     /**
      * True if we are firing
      */
-    private boolean firePressed = false;
+    private boolean firePressed;
     /**
      * True if we are on pause
      */
-    private boolean pausePressed = false;
+    private boolean pausePressed;
     /**
      * The number of key presses we've had while waiting for an "any key" press
      */
-    private int pressCount = 1;
+    private int pressCount;
 
     public void init(Game game) {
         this.game = game;
@@ -175,7 +184,7 @@ public class KeyInputLogicMediator extends KeyAdapter {
         }
 
         // if we hit escape, then quit the game
-        if (e.getKeyChar() == 27) {
+        if (e.getKeyChar() == ESC_CODE) {
             System.exit(0);
         }
     }

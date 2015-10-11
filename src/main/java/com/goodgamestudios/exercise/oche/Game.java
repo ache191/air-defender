@@ -10,6 +10,8 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferStrategy;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * The main hook of our game. This class with both act as a manager
@@ -27,6 +29,23 @@ import java.awt.image.BufferStrategy;
  * @author Kevin Glass
  */
 public class Game extends Canvas {
+    private static final Logger LOGGER = Logger.getLogger(Game.class.getName());
+
+    private static final String THREAD_KAPUT = "Unexpected thread error {}";
+
+    private static final int GAME_X_RESOLUTION = 800;
+    private static final int GAME_Y_RESOLUTION = 600;
+    private static final int GAME_BUFFER_STRATEGY = 2;
+
+    private static final String PRESS_ANY_KEY_MSG = "Press any key";
+    private static final int PRINT_SCREEN_WIDTH = 800;
+    private static final int PRINT_SCREEN_HEIGHT_MSG = 250;
+    private static final int PRINT_SCREEN_HEIGHT_ANY_KEY_MSG = 300;
+    private static final int PRINT_WIDTH_CORRECTIVE = 2;
+    private static final int PRINT_HUD_X = 10;
+    private static final int PRINT_HUD_Y = 20;
+    private static final int SLEEP_PERIOD = 10;
+
     /**
      * The stragey that allows us to use accelerate page flipping
      */
@@ -61,11 +80,11 @@ public class Game extends Canvas {
 
         // get hold the content of the frame and set up the resolution of the game
         JPanel panel = (JPanel) container.getContentPane();
-        panel.setPreferredSize(new Dimension(800, 600));
+        panel.setPreferredSize(new Dimension(GAME_X_RESOLUTION, GAME_Y_RESOLUTION));
         panel.setLayout(null);
 
         // setup our canvas size and put it into the content of the frame
-        setBounds(0, 0, 800, 600);
+        setBounds(0, 0, GAME_X_RESOLUTION, GAME_Y_RESOLUTION);
         panel.add(this);
 
         // Tell AWT not to bother repainting our canvas since we're
@@ -95,7 +114,7 @@ public class Game extends Canvas {
 
         // create the buffering strategy which will allow AWT
         // to manage our accelerated graphics
-        createBufferStrategy(2);
+        createBufferStrategy(GAME_BUFFER_STRATEGY);
         strategy = getBufferStrategy();
     }
 
@@ -176,7 +195,7 @@ public class Game extends Canvas {
             // surface and blank it out
             Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
             g.setColor(Color.black);
-            g.fillRect(0, 0, 800, 600);
+            g.fillRect(0, 0, GAME_X_RESOLUTION, GAME_Y_RESOLUTION);
 
 
             // cycle round asking each entity to move itself
@@ -204,15 +223,18 @@ public class Game extends Canvas {
                     "Score: " +
                             this.stateLogicMediator.getScore() +
                             " Life left: " +
-                            this.entityContainer.getShip().lifeLeft()), 10, 20);
-
+                            this.entityContainer.getShip().lifeLeft()), PRINT_HUD_X, PRINT_HUD_Y);
 
             // if we're waiting for an "any key" press then draw the
             // current message
             if (this.keyInputLogicMediator.isWaitingForKeyPress()) {
                 g.setColor(Color.white);
-                g.drawString(message, (800 - g.getFontMetrics().stringWidth(message)) / 2, 250);
-                g.drawString("Press any key", (800 - g.getFontMetrics().stringWidth("Press any key")) / 2, 300);
+                g.drawString(message,
+                            (PRINT_SCREEN_WIDTH - g.getFontMetrics().stringWidth(message)) / PRINT_WIDTH_CORRECTIVE,
+                            PRINT_SCREEN_HEIGHT_MSG);
+                g.drawString(PRESS_ANY_KEY_MSG,
+                            (PRINT_SCREEN_WIDTH - g.getFontMetrics().stringWidth(PRESS_ANY_KEY_MSG)) / PRINT_WIDTH_CORRECTIVE,
+                            PRINT_SCREEN_HEIGHT_ANY_KEY_MSG);
                 this.stateLogicMediator.printAllAttempts(g);
             }
 
@@ -240,8 +262,9 @@ public class Game extends Canvas {
             // 100 fps but on windows this might vary each loop due to
             // a bad implementation of timer
             try {
-                Thread.sleep(10);
+                Thread.sleep(SLEEP_PERIOD);
             } catch (Exception e) {
+                LOGGER.log(Level.SEVERE, THREAD_KAPUT, e.getMessage());
             }
         }
     }
