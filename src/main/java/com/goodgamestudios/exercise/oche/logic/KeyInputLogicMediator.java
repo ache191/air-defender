@@ -65,6 +65,9 @@ public class KeyInputLogicMediator extends KeyAdapter {
     private int pressCount;
 
     public void init(Game game) {
+        if(game == null) {
+            throw new IllegalStateException("Could not be initialised with null game");
+        }
         this.game = game;
     }
 

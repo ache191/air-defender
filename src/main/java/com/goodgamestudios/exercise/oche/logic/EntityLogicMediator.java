@@ -69,6 +69,9 @@ public class EntityLogicMediator {
      * entity will be added to the overall list of entities in the game.
      */
     public void initEntities(Game game) {
+        if(game == null) {
+            throw new IllegalStateException("Could not be initialised with null game");
+        }
         this.game = game;
         // create the player ship and place it roughly in the center of the screen
         this.ship = new ShipEntity(this.game, SHIP_START_X_POSITION, SHIP_START_Y_POSITION);
