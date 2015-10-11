@@ -4,25 +4,19 @@ import com.goodgamestudios.exercise.oche.Game;
 import com.goodgamestudios.exercise.oche.logic.EntityLogicMediator;
 
 /**
- * Created by a.chekanskiy@gmail.com on 10.10.15.
+ * An entity that represents shot from Alien
  */
 public class AlienShotEntity extends Entity {
     private static String SPRITE_PATH = "sprites/alien_shot.gif";
-    /**
-     * The vertical speed at which the players shot moves
-     */
+
     private static final double MOVE_SPEED = 300;
     private static final int BULLET_BOUNDARY = 700;
     private static final int LIFE_BOUNDARY = 0;
-    /**
-     * The game in which this entity exists
-     */
-    private Game game;
 
-    /**
-     * True if this shot has been "used", i.e. its hit something
-     */
-    private boolean used = false;
+    //Current game entity exists in
+    private Game game;
+    //Prevent double kills flag
+    private boolean used;
 
     /**
      * Create a new shot from the player
@@ -35,8 +29,8 @@ public class AlienShotEntity extends Entity {
         super(SPRITE_PATH, x, y);
 
         this.game = game;
-
         dy = MOVE_SPEED;
+        this.used = false;
     }
 
     /**
@@ -48,9 +42,9 @@ public class AlienShotEntity extends Entity {
         // proceed with normal move
         super.move(delta);
 
-        // if we shot off the screen, remove ourselfs
+        // if we shot off the screen, remove
         if (y > BULLET_BOUNDARY) {
-            this.game.getEntityContainer().disposeEntity(this);
+            EntityLogicMediator.getInstance().disposeEntity(this);
         }
     }
 

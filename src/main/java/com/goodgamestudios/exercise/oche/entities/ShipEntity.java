@@ -6,14 +6,10 @@ import com.goodgamestudios.exercise.oche.logic.KeyInputLogicMediator;
 
 /**
  * The entity that represents the players ship
- *
- * @author Kevin Glass
  */
 public class ShipEntity extends Entity {
     private static String SPRITE_PATH = "sprites/ship.gif";
-    /**
-     * The speed at which the player's ship should move (pixels/sec)
-     */
+
     private static final double MOVE_SPEED = 300;
     private static final long FIRING_INTERVAL = 500;
     private static final int SPEED_BOUNDARY = 0;
@@ -23,13 +19,13 @@ public class ShipEntity extends Entity {
     private static final int BOTTOM_BOUNDARY = 550;
     private static final int SHOT_X_CORRECTIVE = 10;
     private static final int SHOT_Y_CORRECTIVE = 30;
+    private static final int LIFE_COUNT = 5;
 
+    //Time elapsed from last fire
     private long lastFire = 0;
-    private int lifeCount = 5;
-
-    /**
-     * The game in which the ship exists
-     */
+    //Number of lifes left
+    private int lifeCount;
+    //Current game entity exists in
     private Game game;
 
     /**
@@ -41,8 +37,8 @@ public class ShipEntity extends Entity {
      */
     public ShipEntity(Game game, int x, int y) {
         super(SPRITE_PATH, x, y);
-
         this.game = game;
+        this.lifeCount = LIFE_COUNT;
     }
 
     /**
@@ -58,6 +54,7 @@ public class ShipEntity extends Entity {
             return;
         }
 
+        //the same for up up boundary
         if ((dy < SPEED_BOUNDARY) && (y < UP_BOUNDARY)) {
             return;
         }
@@ -68,6 +65,7 @@ public class ShipEntity extends Entity {
             return;
         }
 
+        //the same for bottom boundary
         if ((dy > SPEED_BOUNDARY) && (y > BOTTOM_BOUNDARY)) {
             return;
         }
@@ -75,6 +73,9 @@ public class ShipEntity extends Entity {
         super.move(delta);
     }
 
+    /**
+     * Read what control was pressed and make correspondent move
+     */
     public void processKeyBasedMovement() {
         KeyInputLogicMediator keyInputLogicMediator = KeyInputLogicMediator.getInstance();
 
@@ -96,6 +97,9 @@ public class ShipEntity extends Entity {
         }
     }
 
+    /**
+     * Make a fire attempt, in the case of success add shot entity to correspondent logic mediator
+     */
     public void tryToFire() {
         // check that we have waiting long enough to fire
         if (System.currentTimeMillis() - lastFire < FIRING_INTERVAL) {
@@ -115,8 +119,7 @@ public class ShipEntity extends Entity {
      * @param other The entity with which the ship has collided
      */
     public void collidedWith(Entity other) {
-        // if its an alien, notify the game that the player
-        // is dead
+        // if its an alien, notify the game that the player is dead
         if (other instanceof AlienEntity) {
             this.lifeCount = 0;
             EntityLogicMediator.getInstance().clearAllGameEntities();

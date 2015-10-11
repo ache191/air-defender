@@ -16,17 +16,13 @@ import java.util.logging.Logger;
 /**
  * The main hook of our game. This class with both act as a manager
  * for the display and central mediator for the game logic.
- * <p/>
  * Display management will consist of a loop that cycles round all
  * entities in the game asking them to move and then drawing them
  * in the appropriate place. With the help of an inner class it
  * will also allow the player to control the main ship.
- * <p/>
  * As a mediator it will be informed when entities within our game
  * detect events (e.g. alient killed, played died) and will take
  * appropriate game actions.
- *
- * @author Kevin Glass
  */
 public class Game extends Canvas {
     private static final Logger LOGGER = Logger.getLogger(Game.class.getName());
@@ -46,37 +42,30 @@ public class Game extends Canvas {
     private static final int PRINT_HUD_Y = 20;
     private static final int SLEEP_PERIOD = 10;
 
-    /**
-     * The stragey that allows us to use accelerate page flipping
-     */
+    //The strategy that allows us to use accelerate page flipping
     private BufferStrategy strategy;
-    /**
-     * True if the game is currently "running", i.e. the game loop is looping
-     */
+    //True if the game is currently "running", i.e. the game loop is looping
     private boolean gameRunning = true;
-
-    private EntityLogicMediator entityContainer;
-
+    //All Entity related logic
+    private EntityLogicMediator entityMediator;
+    //All Key Input based related logic
     private KeyInputLogicMediator keyInputLogicMediator;
-
+    //All State related logic
     private StateLogicMediator stateLogicMediator;
 
-    /**
-     * The message to display which waiting for a key press
-     */
-    private String message = "";
 
-    /**
-     * True if game logic needs to be applied this loop, normally as a result of a game event
-     */
-    private boolean logicRequiredThisLoop = false;
+    //The message to display which waiting for a key press
+    private String message;
+
+    //True if game logic needs to be applied this loop, normally as a result of a game event
+    private boolean logicRequiredThisLoop;
 
     /**
      * Construct our game and set it running.
      */
     public Game() {
         // create a frame to contain our game
-        JFrame container = new JFrame("Space Invaders 101");
+        JFrame container = new JFrame("Space Invaders");
 
         // get hold the content of the frame and set up the resolution of the game
         JPanel panel = (JPanel) container.getContentPane();
@@ -116,13 +105,17 @@ public class Game extends Canvas {
         // to manage our accelerated graphics
         createBufferStrategy(GAME_BUFFER_STRATEGY);
         strategy = getBufferStrategy();
+        this.message = "";
+        this.logicRequiredThisLoop = false;
     }
 
+    /**
+     * Initialise the entities in our game so there's something
+     * to see at startup
+     */
     public void initGame() {
-        // initialise the entities in our game so there's something
-        // to see at startup
-        this.entityContainer = EntityLogicMediator.getInstance();
-        this.entityContainer.initEntities(this);
+        this.entityMediator = EntityLogicMediator.getInstance();
+        this.entityMediator.initEntities(this);
         this.keyInputLogicMediator.init(this);
         this.stateLogicMediator = StateLogicMediator.getInstance();
     }
@@ -155,6 +148,9 @@ public class Game extends Canvas {
         this.keyInputLogicMediator.setWaitingForKeyPress(true);
     }
 
+    /**
+     * Notification that game is paused
+     */
     public void notifyPause() {
         message = "Paused";
         this.keyInputLogicMediator.setWaitingForKeyPress(true);
@@ -166,7 +162,7 @@ public class Game extends Canvas {
     public void notifyAlienKilled() {
         // reduce the alient count, if there are none left, the player has won!
         this.stateLogicMediator.incrementScore();
-        this.entityContainer.notifyAlienKilled();
+        this.entityMediator.notifyAlienKilled();
     }
 
     /**
@@ -200,20 +196,20 @@ public class Game extends Canvas {
 
             // cycle round asking each entity to move itself
             if (!this.keyInputLogicMediator.isWaitingForKeyPress()) {
-                this.entityContainer.processAlienShot();
-                this.entityContainer.moveAllEntities(delta);
+                this.entityMediator.processAlienShot();
+                this.entityMediator.moveAllEntities(delta);
             }
 
             // cycle round drawing all the entities we have in the game
-            this.entityContainer.drawAllEntities(g);
-
-            this.entityContainer.calculateCollisionsAndRemoveCollidedEntities();
+            this.entityMediator.drawAllEntities(g);
+            //check collisions
+            this.entityMediator.calculateCollisionsAndRemoveCollidedEntities();
 
             // if a game event has indicated that game logic should
             // be resolved, cycle round every entity requesting that
             // their personal logic should be considered.
             if (logicRequiredThisLoop) {
-                this.entityContainer.doLogic();
+                this.entityMediator.doLogic();
                 logicRequiredThisLoop = false;
             }
 
@@ -223,7 +219,7 @@ public class Game extends Canvas {
                     "Score: " +
                             this.stateLogicMediator.getScore() +
                             " Life left: " +
-                            this.entityContainer.getShip().lifeLeft()), PRINT_HUD_X, PRINT_HUD_Y);
+                            this.entityMediator.getShip().lifeLeft()), PRINT_HUD_X, PRINT_HUD_Y);
 
             // if we're waiting for an "any key" press then draw the
             // current message
@@ -246,16 +242,16 @@ public class Game extends Canvas {
             // resolve the movement of the ship. First assume the ship
             // isn't moving. If either cursor key is pressed then
             // update the movement appropraitely
-            ShipEntity ship = this.entityContainer.getShip();
+            ShipEntity ship = this.entityMediator.getShip();
             ship.processKeyBasedMovement();
 
             // if we're pressing fire, attempt to fire
             if (this.keyInputLogicMediator.isFirePressed()) {
                 ship.tryToFire();
             }
-
+            //if pause was pressed, make pause
             if (this.keyInputLogicMediator.isPausePressed()) {
-                this.entityContainer.makePause();
+                this.entityMediator.makePause();
             }
 
             // finally pause for a bit. Note: this should run us at about
@@ -269,8 +265,8 @@ public class Game extends Canvas {
         }
     }
 
-    public EntityLogicMediator getEntityContainer() {
-        return this.entityContainer;
+    public EntityLogicMediator getEntityMediator() {
+        return this.entityMediator;
     }
 
     /**

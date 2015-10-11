@@ -15,17 +15,9 @@ import java.util.logging.Logger;
  * how and where you get your game resources from. In most cases
  * it makes sense to have a central resource loader that goes away, gets
  * your resources and caches them for future use.
- * <p/>
- * [singleton]
- * <p/>
- *
- * @author Kevin Glass, oleksandr.chekanskyi
- * @author oleksandr.chekanskyi
- *
  */
 public class SpriteStore {
     private static Logger LOGGER = Logger.getLogger(SpriteStore.class.getName());
-    //Message constants to be used for "logging"
     private static String ERR_REF_NOT_FOUND = "Can't find ref: ";
     private static String ERR_REF_LOAD = "Failed to load:  ";
 
@@ -33,9 +25,7 @@ public class SpriteStore {
     private static int IMG_START_X = 0;
     private static int IMG_START_Y = 0;
 
-    /**
-     * The single instance of this class
-     */
+    //The single instance of this class
     private static SpriteStore single = new SpriteStore();
 
     protected SpriteStore() {

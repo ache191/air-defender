@@ -4,16 +4,11 @@ import com.goodgamestudios.exercise.oche.Game;
 
 /**
  * An entity which represents one of our space invader aliens.
- *
- * @author oleksandr.chekanskyi
  */
 public class AlienEntity extends Entity {
     private static String SPRITE_PATH = "sprites/alien.gif";
 
     private static final double SHOT_PROBABILITY = 0.001;
-    /**
-     * The speed at which the alien moves horizontally
-     */
     private static final double MOVE_SPEED = 75;
     private static final long FIRING_INTERVAL = 100;
     private static final int RIGHT_BOUNDARY = 750;
@@ -24,10 +19,9 @@ public class AlienEntity extends Entity {
     private static final int SHOT_Y_CORRECTIVE = 30;
     private static final int MOVE_SCREEN_CORRECTIVE = 10;
 
-    private long lastFire = 0;
-    /**
-     * The game in which the entity exists
-     */
+    //time elapsed from last fire
+    private long lastFire;
+    //Current game entity exists in
     private Game game;
 
     /**
@@ -42,6 +36,7 @@ public class AlienEntity extends Entity {
 
         this.game = game;
         dx = -MOVE_SPEED;
+        this.lastFire = 0;
     }
 
     /**
@@ -60,7 +55,6 @@ public class AlienEntity extends Entity {
         if ((dx > SPEED_BOUNDARY) && (x > RIGHT_BOUNDARY)) {
             game.updateLogic();
         }
-
         // proceed with normal move
         super.move(delta);
     }
@@ -81,6 +75,10 @@ public class AlienEntity extends Entity {
         }
     }
 
+    /**
+     * Tries to make a shot
+     * @return AlienShotEntity in the case of successful shot, null in other case
+     */
     public AlienShotEntity tryToFireAndReturnShot() {
         double chance = Math.random();
         if(chance > SHOT_PROBABILITY) {

@@ -9,14 +9,9 @@ import java.awt.image.BufferedImage;
  * not the location. This allows us to use a single sprite in
  * lots of different places without having to store multiple
  * copies of the image.
- *
- * @author Kevin Glass
  */
 public class Sprite {
-    /**
-     * The image to be drawn for this sprite
-     */
-    //private Image image;
+    //The image to be drawn for this sprite
     private BufferedImage image;
 
     /**

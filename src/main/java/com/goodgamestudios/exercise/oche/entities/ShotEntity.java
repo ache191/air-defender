@@ -4,25 +4,18 @@ import com.goodgamestudios.exercise.oche.Game;
 
 /**
  * An entity representing a shot fired by the player's ship
- *
- * @author Kevin Glass
+
  */
 public class ShotEntity extends Entity {
     private static String SPRITE_PATH = "sprites/shot.gif";
-    /**
-     * The vertical speed at which the players shot moves
-     */
+
     private static final double MOVE_SPEED = -300;
     private static final double SHOT_BOUNDARY = -100;
-    /**
-     * The game in which this entity exists
-     */
-    private Game game;
 
-    /**
-     * True if this shot has been "used", i.e. its hit something
-     */
-    private boolean used = false;
+    //Current game entity exists in
+    private Game game;
+    //Prevent double kills flag
+    private boolean used;
 
     /**
      * Create a new shot from the player
@@ -35,8 +28,8 @@ public class ShotEntity extends Entity {
         super(SPRITE_PATH, x, y);
 
         this.game = game;
-
         dy = MOVE_SPEED;
+        this.used = false;
     }
 
     /**
@@ -51,7 +44,7 @@ public class ShotEntity extends Entity {
         // if we shot off the screen, remove ourselfs
         if (y < SHOT_BOUNDARY) {
             //this.game.entremoveEntity(this);
-            this.game.getEntityContainer().disposeEntity(this);
+            this.game.getEntityMediator().disposeEntity(this);
         }
     }
 
@@ -62,8 +55,7 @@ public class ShotEntity extends Entity {
      * @parma other The other entity with which we've collided
      */
     public void collidedWith(Entity other) {
-        // prevents double kills, if we've already hit something,
-        // don't collide
+        // prevents double kills, if we've already hit something, don't collide
         if (used) {
             return;
         }
@@ -71,8 +63,8 @@ public class ShotEntity extends Entity {
         // if we've hit an alien, kill it!
         if (other instanceof AlienEntity) {
             // remove the affected entities
-            this.game.getEntityContainer().disposeEntity(this);
-            this.game.getEntityContainer().disposeEntity(other);
+            this.game.getEntityMediator().disposeEntity(this);
+            this.game.getEntityMediator().disposeEntity(other);
             // notify the game that the alien has been killed
             game.notifyAlienKilled();
             used = true;

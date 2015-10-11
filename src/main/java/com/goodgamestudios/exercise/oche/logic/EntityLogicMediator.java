@@ -11,10 +11,22 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Created by a.chekanskiy@gmail.com on 09.10.15.
+ * "Mediator" for entity logic
+ * Holds all the entities for the game and processes all the logic needed for it
  */
 public class EntityLogicMediator {
-    // Singleton with double check
+
+    private static final double MOVEMENT_SPEEDUP_COEFFICIENT = 1.02;
+    private static final int SHIP_START_X_POSITION = 370;
+    private static final int SHIP_START_Y_POSITION = 550;
+    private static final int ALIEN_ROW_COUNT = 5;
+    private static final int ALIENS_PER_ROW_COUNT = 12;
+
+    private static final int ALIEN_COL_CORRECTIVE = 50;
+    private static final int ALIEN_ROW_CORRECTIVE = 30;
+    private static final int ALIEN_ROW_DISTANCE = 50;
+    private static final int ALIEN_COL_DISTANCE = 100;
+
     private static volatile EntityLogicMediator INSTANCE = null;
 
     public static EntityLogicMediator getInstance() {
@@ -33,42 +45,28 @@ public class EntityLogicMediator {
         this.disposedShotsAndEnemies = new LinkedList<Entity>();
     }
 
-    private static final double MOVEMENT_SPEEDUP_COEFFICIENT = 1.02;
-    private static final int SHIP_START_X_POSITION = 370;
-    private static final int SHIP_START_Y_POSITION = 550;
-    private static final int ALIEN_ROW_COUNT = 5;
-    private static final int ALIENS_PER_ROW_COUNT = 12;
-
-    private static final int ALIEN_COL_CORRECTIVE = 50;
-    private static final int ALIEN_ROW_CORRECTIVE = 30;
-    private static final int ALIEN_ROW_DISTANCE = 50;
-    private static final int ALIEN_COL_DISTANCE = 100;
-
-
+    //Current game entity exists in
     private Game game;
-
-    /**
-     * The list of all the entities that exist in our game
-     */
+    //The list of all the entities that exist in our game
     private List<Entity> allEntities;
-    /**
-     * The list of entities that need to be removed from the game this loop
-     */
-    private List<Entity> disposedShotsAndEnemies;
-    /**
-     * The entity representing the player
-     */
-    private ShipEntity ship;
 
+    //The list of entities that need to be removed from the game this loop
+    private List<Entity> disposedShotsAndEnemies;
+    //The entity representing the player
+    private ShipEntity ship;
+    //Count of alien entities
     private int alienCount;
 
+    /**
+     * Clear all entities list
+     */
     public void clearAllGameEntities() {
         this.allEntities.clear();
     }
 
     /**
      * Initialise the starting state of the entities (ship and aliens). Each
-     * entitiy will be added to the overall list of entities in the game.
+     * entity will be added to the overall list of entities in the game.
      */
     public void initEntities(Game game) {
         this.game = game;
@@ -96,7 +94,6 @@ public class EntityLogicMediator {
         // reduce the alient count, if there are none left, the player has won!
         this.alienCount--;
 
-
         if (alienCount == 0) {
             this.game.notifyWin();
         }
@@ -111,6 +108,9 @@ public class EntityLogicMediator {
         }
     }
 
+    /**
+     * Check all entities with collision with each other and remove all collided
+     */
     public void calculateCollisionsAndRemoveCollidedEntities() {
         for (int i = 0; i < this.allEntities.size(); i++) {
             for (int j = i + 1; j < this.allEntities.size(); j++) {
@@ -129,14 +129,21 @@ public class EntityLogicMediator {
         this.disposedShotsAndEnemies.clear();
     }
 
+    /**
+     * Request all entities to move
+     * @param delta The amount of time that has passed in milliseconds
+     */
     public void moveAllEntities(long delta) {
         for (Entity entity : this.allEntities) {
             entity.move(delta);
         }
     }
 
+    /**
+     * Request all alien entities to shot
+     */
     public void processAlienShot() {
-        List<AlienShotEntity> shotList = new LinkedList<AlienShotEntity>();
+        List<AlienShotEntity> shotList = new LinkedList();
         for (Entity entity : this.allEntities) {
             if (entity instanceof AlienEntity) {
                 AlienShotEntity alienShot = ((AlienEntity) entity).tryToFireAndReturnShot();
@@ -148,22 +155,36 @@ public class EntityLogicMediator {
         this.allEntities.addAll(shotList);
     }
 
+    /**
+     * Request all entities to make some logic in case if entity has so
+     */
     public void doLogic() {
         for (Entity entity : this.allEntities) {
             entity.doLogic();
         }
     }
 
+    /**
+     * Request to draw all the entities
+     * @param window Window our game is displayed in
+     */
     public void drawAllEntities(Graphics2D window) {
         for (Entity entity : this.allEntities) {
             entity.draw(window);
         }
     }
 
+    /**
+     * Add shot to entity list, this method is mainly used from shooting entities (alien or ship)
+     * @param shot to be added to entity list
+     */
     public void addShot(Entity shot) {
         this.allEntities.add(shot);
     }
 
+    /**
+     * Prohibit movement for all entities
+     */
     public void makePause() {
         for (Entity entity : this.allEntities) {
             entity.setPaused(true);
@@ -171,20 +192,26 @@ public class EntityLogicMediator {
         this.game.notifyPause();
     }
 
+    /**
+     * Allow movement for all entities
+     */
     public void releasePause() {
         for (Entity entity : this.allEntities) {
             entity.setPaused(false);
         }
     }
 
-    public ShipEntity getShip() {
-        return this.ship;
-    }
-
+    /**
+     * Add entity to disposable list for future utilization
+     * @param entity Entity to dispose
+     */
     public void disposeEntity(Entity entity) {
         this.disposedShotsAndEnemies.add(entity);
     }
 
+    public ShipEntity getShip() {
+        return this.ship;
+    }
 }
 
 

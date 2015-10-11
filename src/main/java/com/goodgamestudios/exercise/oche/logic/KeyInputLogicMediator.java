@@ -10,20 +10,15 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
 /**
+ * "Mediator" for key input logic
  * A class to handle keyboard input from the user. The class
- * handles both dynamic input during game play, i.e. left/right
- * and shoot, and more static type input (i.e. press any key to
+ * handles both dynamic input during game play, i.e. left/right/up/down/shoot/pause
+ * and more static type input (i.e. press any key to
  * continue)
- * <p/>
- * This has been implemented as an inner class more through
- * habbit then anything else. Its perfectly normal to implement
- * this as seperate class if slight less convienient.
- *
- * @author Kevin Glass
  */
 public class KeyInputLogicMediator extends KeyAdapter {
     private static final int ESC_CODE = 27;
-    // Singleton with double check
+
     private static volatile KeyInputLogicMediator INSTANCE = null;
 
     public static KeyInputLogicMediator getInstance() {
@@ -48,39 +43,25 @@ public class KeyInputLogicMediator extends KeyAdapter {
         this.pausePressed = false;
     }
 
+    //Current game entity exists in
     private Game game;
 
-    /**
-     * True if we're holding up game play until a key has been pressed
-     */
+    //true if we're holding up game play until a key has been pressed
     private boolean waitingForKeyPress;
-    /**
-     * True if the up cursor key is currently pressed
-     */
+    //true if the up cursor key is currently pressed
     private boolean upPressed;
-    /**
-     * True if the down cursor key is currently pressed
-     */
+    //true if the down cursor key is currently pressed
     private boolean downPressed;
-    /**
-     * True if the left cursor key is currently pressed
-     */
+    //true if the left cursor key is currently pressed
     private boolean leftPressed;
-    /**
-     * True if the right cursor key is currently pressed
-     */
+    //true if the right cursor key is currently pressed
     private boolean rightPressed;
-    /**
-     * True if we are firing
-     */
+    //true if we are firing
     private boolean firePressed;
-    /**
-     * True if we are on pause
-     */
+    //true if we are on pause
     private boolean pausePressed;
-    /**
-     * The number of key presses we've had while waiting for an "any key" press
-     */
+
+    //The number of key presses we've had while waiting for an "any key" press
     private int pressCount;
 
     public void init(Game game) {
@@ -176,7 +157,7 @@ public class KeyInputLogicMediator extends KeyAdapter {
                 // event we can mark it as such and start
                 // our new game
                 waitingForKeyPress = false;
-                setStartPositions();
+                setStartState();
                 pressCount = 0;
             } else {
                 pressCount++;
@@ -189,7 +170,10 @@ public class KeyInputLogicMediator extends KeyAdapter {
         }
     }
 
-    public void setStartPositions() {
+    /**
+     * If we want to start new game, we should reset state for all controls
+     */
+    public void setStartState() {
         if (this.game == null) {
             throw new IllegalStateException("Object is not initialised, please call init(Game game) method before use!");
         }

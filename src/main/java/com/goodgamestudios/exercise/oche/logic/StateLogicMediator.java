@@ -16,7 +16,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Created by a.chekanskiy@gmail.com on 10.10.15.
+ * "Mediator" for state logic
+ * Holds all the "state" for the game and processes all the logic needed for it
+ * Score, best 10 attempts, provides saving score table in file
  */
 public class StateLogicMediator {
     private static Logger LOGGER = Logger.getLogger(StateLogicMediator.class.getName());
@@ -30,7 +32,6 @@ public class StateLogicMediator {
     private static final int PRINT_START_CORRECTIVE = 350;
     private static final int PRINT_CORRECTIVE_SHIFT = 15;
 
-    // Singleton with double check
     private static volatile StateLogicMediator INSTANCE = null;
 
     public static StateLogicMediator getInstance() {
@@ -50,11 +51,18 @@ public class StateLogicMediator {
         this.bestTenAttempts = getPreviousAttempts();
     }
 
+    //Current game score
     private int score;
+    //Best 10 game attempts
     private List<GameAttempt> bestTenAttempts;
+    //Last game attempt performed by the player
     private GameAttempt lastAttempt;
+    //File object with "highscore table"
     private File attemptsFile;
 
+    /**
+     * Save new game attempt and merge it with highscore table to get most recent highscores
+     */
     public void makeNewAttempt() {
         GameAttempt gameAttempt = new GameAttempt();
         gameAttempt.setLifeCount(EntityLogicMediator.getInstance().getShip().lifeLeft());
@@ -63,6 +71,10 @@ public class StateLogicMediator {
         mergeGameAttemptsToGetTopTen();
     }
 
+    /**
+     *Print highscore table in the game
+     * @param g Window where game is drawn
+     */
     public void printAllAttempts(Graphics2D g) {
         g.drawString("TOP TEN",
                     (PRINT_SCREEN_WIDTH - g.getFontMetrics().stringWidth("TOP TEN")) / PRINT_WIDTH_CORRECTIVE,
@@ -76,8 +88,9 @@ public class StateLogicMediator {
         }
     }
 
-
-
+    /**
+     * Merge last game attempt with highscore table and get best 10 attempts
+     */
     private void mergeGameAttemptsToGetTopTen() {
         this.bestTenAttempts.add(this.lastAttempt);
         Collections.sort(this.bestTenAttempts);
@@ -97,6 +110,10 @@ public class StateLogicMediator {
         }
     }
 
+    /**
+     * Get list of all attempts from file
+     * @return List of all previous attempts
+     */
     private List<GameAttempt> getPreviousAttempts() {
         List<GameAttempt> result = new LinkedList();
         try {
@@ -112,6 +129,12 @@ public class StateLogicMediator {
         return result;
     }
 
+    /**
+     * Get GameAttempt object from serialized string
+     *
+     * @param str string representation of attempt from file
+     * @return object deserialized from saved string
+     */
     private GameAttempt valueOfCSVLikeString(String str) {
         String[] val = str.split(";");
         GameAttempt gameAttempt = new GameAttempt();
@@ -122,6 +145,10 @@ public class StateLogicMediator {
         return gameAttempt;
     }
 
+    /**
+     * Serialize best 10 GameAttempt object to strings for print
+     * @return best 10 attempts as strings
+     */
     private List<String> getAllAttemptsAsStrings() {
         if(this.bestTenAttempts == null || this.bestTenAttempts.isEmpty()){
             return Collections.emptyList();
@@ -133,27 +160,48 @@ public class StateLogicMediator {
         return result;
     }
 
-    public int getScore() {
-        return score;
-    }
-
+    /**
+     * Reset current score to start value
+     */
     public void resetScore() {
         this.score = 0;
     }
 
+    /**
+     * Add +1 to current score
+     */
     public void incrementScore() {
         this.score++;
     }
 
+    public int getScore() {
+        return score;
+    }
 
+    /**
+     * Class representing GameAttempt
+     */
     public class GameAttempt implements Comparable<GameAttempt> {
+        //Date Format for readable representation
         private SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy - HH:mm:ss");
+        //Score reached
         private int score;
+        //Life number left
         private int lifeCount;
+        //Date of attempt
         private Date date;
 
         public GameAttempt() {
             this.date = new Date();
+        }
+
+        /**
+         *
+         * @return Serialize GameAttempt object as CSV like string with ";" delimiter
+         */
+        public String toCSVLikeString(){
+            String result = this.score + ";" + this.getLifeCount() + ";" + this.date.getTime();
+            return result;
         }
 
         public int getScore() {
@@ -182,11 +230,6 @@ public class StateLogicMediator {
 
         public String getStringDate() {
             return sdf.format(date);
-        }
-
-        public String toCSVLikeString(){
-            String result = this.score + ";" + this.getLifeCount() + ";" + this.date.getTime();
-            return result;
         }
 
         @Override
