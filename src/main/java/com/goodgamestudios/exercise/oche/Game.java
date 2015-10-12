@@ -59,7 +59,7 @@ public class Game extends Canvas {
 
     //True if game logic needs to be applied this loop, normally as a result of a game event
     private boolean logicRequiredThisLoop;
-//
+
     /**
      * Construct our game and set it running.
      */
