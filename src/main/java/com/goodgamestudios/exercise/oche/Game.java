@@ -65,7 +65,7 @@ public class Game extends Canvas {
      */
     public Game() {
         // create a frame to contain our game
-        JFrame container = new JFrame("Space Invaders");
+        JFrame container = new JFrame("Air Defender");
 
         // get hold the content of the frame and set up the resolution of the game
         JPanel panel = (JPanel) container.getContentPane();
